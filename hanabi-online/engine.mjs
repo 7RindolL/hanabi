@@ -96,7 +96,7 @@ export function act(game, players, playerId, action) {
     if (!target.hand.some(card => matched(card, action.clueType, value, game.mode))) deny('該当カードがないヒントは出せません');
     const indices = noteClue(target.hand, action.clueType, value, game.mode);
     game.hints--;
-    result = { kind: 'clue', actor: actor.name, target: target.name, clueType: action.clueType, value, indices };
+    result = { kind: 'clue', actor: actor.name, actorId: actor.id, target: target.name, targetId: target.id, clueType: action.clueType, value, indices, cardIds: indices.map(i => target.hand[i - 1].id) };
   } else {
     const index = action.index;
     if (!Number.isInteger(index) || index < 0 || index >= actor.hand.length) deny('カードを選択してください');
