@@ -40,6 +40,8 @@ test('ヒント：当たり外れ両方を各カードに記録 / 該当なし�
   ps[1].hand=[card('red',1),card('blue',1),card('red',5)];
   const r=C(g,ps,'id0','clue',{targetId:'id1',clueType:'color',value:'red'});
   assert.deepEqual(r.indices,[1,3]);assert.equal(g.hints,7);
+  assert.equal(r.actorId,'id0');assert.equal(r.targetId,'id1');
+  assert.deepEqual(r.cardIds,[ps[1].hand[0].id,ps[1].hand[2].id]);
   assert.deepEqual(ps[1].hand[0].knowledge.yesColors,['red']);
   assert.deepEqual(ps[1].hand[1].knowledge.noColors,['red']);
   assert.throws(()=>C(g,ps,'id0','clue',{targetId:'id1',clueType:'rank',value:4}),/手番/);
@@ -109,4 +111,17 @@ test('手番以外・自分宛ヒント・不正なカード位置は拒否す�
   assert.throws(()=>C(g,ps,'id1','play',{index:0}),/手番/);
   assert.throws(()=>C(g,ps,'id0','clue',{targetId:'id0',clueType:'rank',value:2}),/自分自身/);
   assert.throws(()=>C(g,ps,'id0','play',{index:999}),/カードを選択/);
+});
+
+test('ヒント対象IDは手札が詰められても正確で、新規カードを誤って指さない',()=>{
+  const {ps,g}=newGame();
+  ps[1].hand=[card('red',1),card('blue',2),card('red',3),card('green',4),card('white',5)];
+  const clue=C(g,ps,'id0','clue',{targetId:'id1',clueType:'color',value:'red'});
+  assert.deepEqual(clue.indices,[1,3]);
+  const ids=new Set(clue.cardIds);
+  // Remove a card before the second red card: its index shifts, ID does not.
+  g.hints=7;
+  C(g,ps,'id1','discard',{index:1});
+  assert.deepEqual(ps[1].hand.flatMap((c,i)=>ids.has(c.id)?[i+1]:[]),[1,2]);
+  assert(!ids.has(ps[1].hand.at(-1).id));
 });
